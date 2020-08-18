@@ -1,0 +1,52 @@
+# author: jp
+# date: 2020-08-12 13:41
+# description: Tomcar install impl
+---
+- name: Check if tomcat is already installed
+  stat: path={{ relandHome }}/tomcat
+  register: fileExist
+
+- fail:
+   msg: 'tomcat已经存在，请选择其他操作（卸载或者更新）'
+  when: fileExist.stat.exists == True
+
+- name: Create tomcat directory if tomcatfile dont exist
+  file: path={{ relandHome }}/tomcat state=directory
+  when: fileExist.stat.exists == False
+
+- name: Unarchive tomcatVersion at path
+  unarchive: src={{ landTomcat }}/{{ landTomcatVersion }} dest={{ relandHome }}/tomcat
+
+- name: Rename dest conf file
+  shell: mv {{ relandHome }}/tomcat/conf {{ relandHome }}/tomcat/conf-res
+
+- name: Rename dest start.sh
+  shell: mv {{ relandHome }}/tomcat/bin/startup.sh {{ relandHome }}/tomcat/bin/startup-res.sh
+
+- name: Replace conf (install)
+  copy: src={{ landTomcat }}/conf dest={{ relandHome }}/tomcat/
+  when: landOpCode=='i'
+
+- name: Replace startup.sh (install)
+  copy: src={{ landTomcat }}/startup.sh dest={{ relandHome }}/tomcat/bin
+  when: landOpCode=='i'
+
+- name: Replace conf (update)
+  copy: src={{ relandHome }}/temp/conf dest={{ relandHome }}/tomcat/ remote_src=yes
+  when: landOpCode=='u'
+  tags: update
+
+- name: Replace startup.sh (update)
+  copy: src={{ relandHome }}/temp/startup.sh dest={{ relandHome }}/tomcat/bin remote_src=yes
+  when: landOpCode=='u'
+  tags: update
+
+- name: Give startup.sh run permission
+  shell: chmod +x {{ relandHome }}/tomcat/bin/startup.sh  
+
+- name: Start tomcat service by start.sh
+  shell: chdir={{ relandHome }}/tomcat/bin sh ./startup.sh
+
+#- name: Wait for tomcat to start
+#  wait_for: prot=8080 timeout=60
+  

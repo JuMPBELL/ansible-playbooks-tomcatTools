@@ -1,0 +1,52 @@
+# author: jp
+# date: 2020-08-13 14:59
+# description: Tomcat update impl
+---
+- name: Check targer tomcat exists
+  stat: path=/tomcat
+  register: targetExist
+
+- name: Target tomcat dont exist
+  assert:
+    that:
+      - targetExist.stat.exists == True
+    fail_msg: '目标服务器没有可更新的tomcat'
+
+- name: Get target version info
+  shell: sh /tomcat/bin/version.sh | grep 'Server number' | awk -F ':' '{print $2}' | sed 's/ //g'
+  register: targetVersion
+
+- name: Show target version number
+  debug: var=targetVersion.stdout
+
+- name: Get invade version info
+  shell: echo |grep -Eo ^.*[0-9]|awk -F 'tomcat' '{print $2}'
+  register: invadeVersion
+
+- name: Show invade version number
+  debug: var=invadeVersion.stdout
+
+- name: Check updating premission
+  assert:
+    that:
+      - invadeVersion.stdout|int <= targetVersion.stdout|int
+    fail_msg: '无法从高版本更新至低版本'
+
+- name: Create temp file
+  file: path=/temp state=directory
+
+- name: Backup old tomcat webapps
+  copy: src=/tomcat/webapps dest={{ relandHome }}/temp/ remote_src=yes
+
+- name: Backup old tomcat conf
+  copy: src=/tomcat/conf dest={{ relandHome }}/temp/ remote_src=yes
+
+- name: Backup old tomcat startup.sh
+  copy: src=/tomcat/bin/startup.sh dest={{ relandHome }}/temp/ remote_src=yes
+
+
+- name: Delete old tomcat
+  file: path={{ relandHome }}/tomcat state=absent
+
+- name: Import install task
+  import_tasks: install.yml

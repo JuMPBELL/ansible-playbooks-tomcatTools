@@ -1,0 +1,13 @@
+# author: jp
+# date: 2020-08-13 14:45
+# description: Tomcat uninstall impl
+---
+- name: Stop tomcat
+  shell: pkill -f tomcat
+  ignore_errors: yes
+
+- name: Backup tomcat webapps file
+  copy: src=/tomcat/webapps dest={{ relandHome }}/ remote_src=yes
+
+- name: Delete tomcat file
+  file: path=/tomcat state=absent

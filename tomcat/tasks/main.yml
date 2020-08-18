@@ -1,0 +1,15 @@
+---
+# author: wangbin
+# date: 2020-08-12 9:56
+# description: main of Tomcat role
+- name: tomcat -install
+  include: install.yml
+  when: landOpCode=='i'
+
+- name: tomcat -uninstall
+  include: uninstall.yml
+  when: landOpCode=='d'
+
+- name: tomcat -update
+  include: update.yml
+  when: landOpCode=='u'
