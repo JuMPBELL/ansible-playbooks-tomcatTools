@@ -1,0 +1,6 @@
+---
+landNode: [test1_SP]
+landOpCode: i
+landTomcat: /data/jenkins/tomcat
+landTomcatVersion: tomcat8.5.tar
+relandHome: /data/landApp
