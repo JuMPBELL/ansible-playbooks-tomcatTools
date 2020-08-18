@@ -1,0 +1,6 @@
+---
+- hosts: '{{ landNode }}'
+  vars_files:
+   - '{{ varMain }}'
+  roles:
+    - role:  tomcat
